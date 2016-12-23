@@ -27,8 +27,8 @@ class Spree::OmniauthCallbacksController < Devise::OmniauthCallbacksController
           else
             user = Spree::User.find_by_email(auth_hash['info']['email']) || Spree::User.new
             user.apply_omniauth(auth_hash)
+            user.skip_confirmation!
             unless user.save
-              user.skip_confirmation!
               user.email = auth_hash['info']['email']
               user.save
             end
