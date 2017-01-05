@@ -30,9 +30,13 @@ class Spree::OmniauthCallbacksController < Devise::OmniauthCallbacksController
             user.skip_confirmation!
             unless user.save
               # If Facebook doesn't provide an emailaddress, redirect to Facebook to re-request the emailaddress
-              if request.env["omniauth.auth"].info.email.blank? && provider == 'facebook'
-                #redirect_to "/users/auth/facebook?auth_type=rerequest&scope=email"
+              if auth_hash['provider'] == 'facebook' && auth_hash['info']['email'].blank?
                 redirect_to spree.spree_user_omniauth_authorize_path(provider: auth_hash['provider'], auth_type: 'rerequest', scope: 'email') and return
+              else
+                session[:omniauth] = auth_hash.except('extra')
+                flash[:notice] = Spree.t(:one_more_step, kind: auth_hash['provider'].capitalize)
+                redirect_to new_spree_user_registration_url
+                return
               end
             end
             flash[:notice] = I18n.t('devise.omniauth_callbacks.success', kind: auth_hash['provider'])

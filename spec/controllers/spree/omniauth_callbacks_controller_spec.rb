@@ -9,6 +9,7 @@ RSpec.describe Spree::OmniauthCallbacksController, type: :controller do
     allow(controller).to receive(:sign_in_and_redirect)
     allow(controller).to receive(:redirect_back_or_default)
     allow(Spree::User).to receive(:anonymous!).with(user)
+    allow_any_instance_of(Spree::User).to receive(:skip_confirmation!)
   end
 
   shared_examples_for 'denied_permissions' do

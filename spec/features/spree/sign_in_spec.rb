@@ -1,4 +1,7 @@
 RSpec.feature 'signing in using Omniauth', :js do
+  background do
+    allow_any_instance_of(Spree::User).to receive(:skip_confirmation!)
+  end
   context 'facebook' do
     background do
       Spree::AuthenticationMethod.create!(
@@ -42,6 +45,38 @@ RSpec.feature 'signing in using Omniauth', :js do
       expect(page).to have_text 'My Account'
     end
   end
+
+  context 'facebook without email' do
+    background do
+      Spree::AuthenticationMethod.create!(
+        provider: 'facebook',
+        api_key: 'fake',
+        api_secret: 'fake',
+        environment: Rails.env,
+        active: true)
+      OmniAuth.config.test_mode = true
+      OmniAuth.config.mock_auth[:facebook] = {
+        'provider' => 'facebook',
+        'uid' => '123545',
+        'info' => {
+          'name' => 'mockuser',
+          'image' => 'mock_user_thumbnail_url'
+        },
+        'credentials' => {
+          'token' => 'mock_token',
+          'secret' => 'mock_secret'
+        }
+      }
+    end
+    scenario 'going to sign in' do
+      visit spree.root_path
+      click_link 'Login'
+      find('a#facebook').trigger('click')
+      OmniAuth.config.add_mock(:facebook, {info: {email: 'mockuser@example.com'}})
+      click_facebook_link
+    end
+  end
+
 
   context 'twitter' do
     background do
