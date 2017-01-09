@@ -32,6 +32,9 @@ class Spree::OmniauthCallbacksController < Devise::OmniauthCallbacksController
               # If Facebook doesn't provide an emailaddress, redirect to Facebook to re-request the emailaddress
               if auth_hash['provider'] == 'facebook' && auth_hash['info']['email'].blank?
                 redirect_to spree.spree_user_omniauth_authorize_path(provider: auth_hash['provider'], auth_type: 'rerequest', scope: 'email') and return
+              elsif auth_hash['provider'] == 'twitter' && user.email.blank? && auth_hash['info']['email']
+                  user.email = auth_hash['info']['email']
+                  user.save
               else
                 session[:omniauth] = auth_hash.except('extra')
                 flash[:notice] = Spree.t(:one_more_step, kind: auth_hash['provider'].capitalize)
